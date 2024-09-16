@@ -1,0 +1,11 @@
+{
+    "changeOpsEndpoint": "https://raw.githubusercontent.com/benjaminchodroff/ConsensusLayerWithdrawalProtection/main/change-operations.json",
+    "beaconEndpoints": [
+      "http://localhost:5051"
+    ],
+    "forkTimestamp": 1681338455,
+    "pollingPeriod": 10000,
+    "submitPeriod": 1000,
+    "SubmitBatchSize": 1000,
+    "PriorityOperations": []
+  }

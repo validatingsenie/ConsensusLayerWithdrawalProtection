@@ -27,6 +27,8 @@ CLWP Presentation: https://docs.google.com/presentation/d/1qV0NP2-5UZI51Ja7Vf_AN
 
 ## Steps
 
+2023-03-24 - Please volunteer by following the steps in [Volunteer](https://github.com/benjaminchodroff/ConsensusLayerWithdrawalProtection#volunteer). All new validator submissions are closed via CLWP GitHub and Kleros. 
+
 2023-02-27 - We will close community CLWP submissions via GitHub after 2/28. If you require to use CLWP for either contesting an existing OR submitting a new validator index, please submit it via Kleros Curate which requires staking 0.474 ETH/validator for one week (refunded if valid), and pay the ETH mainnet gas costs (about ~$5 USD/validator): 
 https://curate.kleros.io/tcr/1/0x479083b5343aB89bb39608e3176D750c8A6957B5. 
 
@@ -106,7 +108,7 @@ For community support, create an issue or join our OffChain Discord channel #eth
 
 ## Volunteer
 
-We welcome every node operator to volunteer by loading CLWP submissions into their node in advance of the Capella hard fork on each chain. 
+We welcome every node operator to volunteer by loading CLWP submissions into their node in advance of the Capella hard fork on each chain. Only Prysm, Lighthouse, and Lodestar beacon nodes support local cache and broadcasting of submissions at Capella. 
 
 ```
 # Navigate to the folder containing the "ethdo" utility
@@ -115,14 +117,28 @@ cd /path/to/ethdoFolder
 # Download the CLWP submissions:
 git clone https://github.com/benjaminchodroff/ConsensusLayerWithdrawalProtection.git
 
+# Unpack the offline preparation (necessary for nodes which have low gRPC message limits)
+tar -zxf ConsensusLayerWithdrawalProtection/offline-preparation.json.mainnet.*.tar.gz
+mv offline-preparation.json.mainnet offline-preparation.json
+
 # Install jq (Example: apt install -y jq) and use it to combine all CLWP submissions together into a single change-operations.json file
 jq -s 'add' ConsensusLayerWithdrawalProtection/mainnet/*.json > change-operations.json
 
 # Run ethdo to connect to your beacon node (specify the valid host and port), allowing local insecure connections using HTTP, and it will broadcast all messages in the change-operations.json file.
-./ethdo validator credentials set --connection http://YourNodeIP:5052 --allow-insecure-connections 
+# Prysm json HTTP port defaults to 3500
+# Lighthouse json HTTP port defaults to 5052
+# Lodestar json HTTP port defaults to 9596
+# Teku is NOT supported prior to Capella, but json HTTP port defaults to 5051
+./ethdo validator credentials set --connection http://YourNodeIP:5052 --allow-insecure-connections --verbose --debug
 echo $?
 ```
 
-If you see "0" with no error messages, then you have set the CLWP submissions to your node. You may also confirm in the logs for your beacon node to see the messages. 
+If you see "0" at the end, then you have set the CLWP submissions to your node. You may also confirm in the logs for your beacon node to see the messages. You can also verify the submissions on your node with:
 
-Please sign up to our mailing list on https://clwp.xyz to receive notice when we have more detailed instructions in March. There is no cost (you don't even need to stake), and there is no penalty even if an attacker "wins the race" against a CLWP submission. Your beacon chain client will simply ignore the local submission and use the on chain consensus. All CLWP submissions may be independently verified and, even if a submission in this repository was invalid, your local beacon chain client would refuse to process it without penalty. 
+```
+curl http://YourNodeIP:5052/eth/v1/beacon/pool/bls_to_execution_changes
+```
+
+*Important*: If you restart your beacon chain client before the Capella upgrade, the submissions may get lost. If so, please re-run the `ethdo` command above; there's no harm in re-submitting the submissions. 
+
+Please sign up to our mailing list on https://clwp.xyz to receive notice when we have more detailed instructions in March. There is no cost (you don't even need to stake), and there is no penalty even if an attacker "wins the race" against a CLWP submission. Your beacon chain client will simply ignore the local submission and use the on chain consensus. All CLWP submissions may be independently verified and, even if a submission in this repository was invalid, your local beacon chain client would refuse to process it without penalty.
